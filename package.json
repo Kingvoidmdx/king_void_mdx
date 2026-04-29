@@ -1,0 +1,26 @@
+{
+  "name": "king_void_mdx",
+  "version": "1.0.0",
+  "description": "KING_VOID<>MDX - Multi-platform bot base by King Val",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js"
+  },
+  "keywords": [
+    "king_void_mdx",
+    "bot",
+    "termux",
+    "render",
+    "pterodactyl",
+    "multi-platform"
+  ],
+  "author": "King Val",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "qrcode": "^1.5.4"
+  }
+}
