@@ -1,45 +1,42 @@
 const express = require('express');
-const os = require('os');
-const config = require('../config/default');
+const { initPairingSystem } = require('./pairing');
+const { loadCommands } = require('./commands/loader');
+const { logger } = require('./utils/logger');
 
-function startApp() {
-  const app = express();
-  const port = process.env.PORT || 3000;
+const app = express();
+let botInstance = null;
 
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-  app.get('/', (req, res) => {
-    res.status(200).json({
-      name: process.env.BOT_NAME || config.botName,
-      owner: process.env.OWNER_NAME || config.ownerName,
-      status: 'online',
-      platform: os.platform(),
-      uptime: process.uptime(),
-      message: 'Welcome to KING_VOID<>MDX'
+const startApp = async () => {
+  try {
+    logger.info('🚀 Starting KING_VOID<>MDX Bot...');
+    
+    // Initialize pairing system
+    const pairingSystem = await initPairingSystem();
+    
+    // Load commands
+    const commands = await loadCommands();
+    logger.info(`✅ Loaded ${commands.length} commands`);
+    
+    // Start Express server for webhook/API
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      logger.info(`✅ Server running on port ${PORT}`);
     });
-  });
+    
+    botInstance = {
+      pairing: pairingSystem,
+      commands: commands,
+      status: 'RUNNING'
+    };
+    
+    logger.info('✅ Bot initialized successfully!');
+    return botInstance;
+  } catch (error) {
+    logger.error('❌ Failed to start bot:', error);
+    process.exit(1);
+  }
+};
 
-  app.get('/health', (req, res) => {
-    res.status(200).json({
-      ok: true,
-      message: 'Server healthy'
-    });
-  });
-
-  app.get('/menu', (req, res) => {
-    res.status(200).json({
-      bot: process.env.BOT_NAME || config.botName,
-      commands: [
-        `${config.prefix}ping`,
-        `${config.prefix}menu`
-      ]
-    });
-  });
-
-  app.listen(port, () => {
-    console.log(`${process.env.BOT_NAME || config.botName} running on port ${port}`);
-  });
-}
-
-module.exports = { startApp };
+module.exports = { startApp, app };
