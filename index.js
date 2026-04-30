@@ -22,19 +22,7 @@ const startBot = async () => {
     const commands = await loadCommands();
     logger.info(`✅ Loaded ${commands.length} commands`);
 
-    // Show pairing menu
-    const pairingPrompt = new PairingPrompt(pairingSystem);
-    const pairingChoice = await pairingPrompt.startPairing();
-    pairingPrompt.close();
-
-    if (!pairingChoice) {
-      logger.error('❌ Pairing cancelled or failed');
-      process.exit(1);
-    }
-
-    logger.info(`✅ Using ${pairingChoice.method.toUpperCase()} pairing method`);
-
-    // Connect to WhatsApp
+    // Connect to WhatsApp first so we can send push codes
     waConnection = new WhatsAppConnection();
     const socket = await waConnection.connect();
 
@@ -49,6 +37,18 @@ const startBot = async () => {
       };
       checkConnection();
     });
+
+    // Now show pairing menu and pass the connected waConnection
+    const pairingPrompt = new PairingPrompt(pairingSystem);
+    const pairingChoice = await pairingPrompt.startPairing(waConnection);
+    pairingPrompt.close();
+
+    if (!pairingChoice) {
+      logger.error('❌ Pairing cancelled or failed');
+      process.exit(1);
+    }
+
+    logger.info(`✅ Using ${pairingChoice.method.toUpperCase()} pairing method`);
 
     // Initialize message handler
     messageHandler = new MessageHandler(socket, commands);
