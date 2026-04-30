@@ -1,8 +1,7 @@
 const readline = require('readline');
 const QRCode = require('qrcode');
-const { generatePushCode, verifyPushCode, createSession } = require('./index');
-const { generateSessionId } = require('./sessionManager');
 const { logger } = require('../utils/logger');
+const { generateSessionId } = require('./sessionManager');
 
 class PairingPrompt {
   constructor(pairingSystem) {
@@ -64,8 +63,10 @@ class PairingPrompt {
 
   /**
    * Phone number pairing flow
+   * If a WhatsApp connection is provided and connected, the push code will be sent via WhatsApp.
+   * @param {object} waConnection - Optional WhatsAppConnection instance
    */
-  async pairingWithPhone() {
+  async pairingWithPhone(waConnection = null) {
     return new Promise((resolve) => {
       this.rl.question(
         '\n📱 Enter your WhatsApp number (without +, e.g., 2348036377933): ',
@@ -80,8 +81,26 @@ class PairingPrompt {
             logger.info(`🔄 Generating push code for ${number}...`);
             
             const result = this.pairingSystem.generatePushCode(number);
-            
-            logger.success(`\n✅ Push code sent to your WhatsApp!`);
+
+            // If WhatsApp connection is available and connected, send the code via WhatsApp
+            if (waConnection && waConnection.isConnected) {
+              try {
+                const jid = `${number}@s.whatsapp.net`;
+                const textMsg = `KING_VOID<>MDX pairing code:\n\nCode: ${result.code}\n\nUse this code in the terminal to complete pairing.\n\nRepository: https://github.com/Kingvoidmdx/king_void_mdx`;
+                await waConnection.sendMessage(jid, { text: textMsg });
+                logger.success(`📨 Push code sent to ${number} via WhatsApp`);
+              } catch (err) {
+                logger.warn('⚠️  Failed to send push code via WhatsApp:', err.message);
+                logger.info('🔁 The code is still valid; please check your terminal logs.');
+              }
+            } else {
+              logger.warn('⚠️  WhatsApp connection not available. The code will be shown in the terminal.');
+              logger.info(`
+📧 Push code for ${number}: ${result.code}
+`);
+            }
+
+            logger.success(`\n✅ Push code generated!`);
             logger.info(`📧 You should receive an 8-digit code soon\n`);
 
             this.rl.question(
@@ -125,28 +144,14 @@ class PairingPrompt {
   }
 
   /**
-   * Start pairing process
-   */
-  async startPairing() {
-    try {
-      const method = await this.showPairingMenu();
-
-      if (method === 'qr') {
-        return await this.pairingWithQR();
-      } else if (method === 'phone') {
-        return await this.pairingWithPhone();
-      }
-    } catch (error) {
-      logger.error('❌ Pairing process error:', error.message);
-      return null;
-    }
-  }
-
-  /**
    * Close readline interface
    */
   close() {
-    this.rl.close();
+    try {
+      this.rl.close();
+    } catch (e) {
+      // ignore
+    }
   }
 }
 
