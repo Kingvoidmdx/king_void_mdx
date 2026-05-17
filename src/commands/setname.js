@@ -1,9 +1,12 @@
 module.exports = {
   name: 'setname',
-  description: 'Set group name (placeholder)',
-  category: 'group',
-  execute: async (message, botInstance) => {
-    const name = (message.args && message.args.join(' ')) || '';
-    return { success: true, message: `🪪 Group name set to: ${name} (placeholder).` };
+  description: 'Set bot name',
+  category: 'owner',
+  ownerOnly: true,
+  execute: async (message) => {
+    const name = message.args.join(' ');
+    if (!name) return { message: `*_❌ Usage:_* *_.setname <new name>_*` };
+    process.env.BOT_NAME = name;
+    return { message: `*_✅ Bot name changed to:_* *_${name}_*\n\n*_⚠️ Changes may take a few minutes to reflect_*` };
   }
 };

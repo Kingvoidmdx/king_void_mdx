@@ -1,0 +1,35 @@
+const ytsr = require('ytsr');
+const ytdl = require('@distube/ytdl-core');
+
+module.exports = {
+  name: 'playvid',
+  description: 'Play video from YouTube',
+  category: 'download',
+  execute: async (message, botInstance) => {
+    const query = message.args.join(' ');
+    if (!query) return { success: false, message: `*_❌ Please provide a video name_*\n\n*_Usage:_* *_.playvid <video name>_*` };
+
+    try {
+      const search = await ytsr(query, { limit: 1 });
+      const video = search.items.find(i => i.type === 'video');
+      if (!video) return { success: false, message: `*_❌ No results found for:_* *_${query}_*` };
+
+      const url = video.url;
+      const info = await ytdl.getInfo(url);
+      const title = info.videoDetails.title;
+      const videoStream = ytdl(url, { filter: 'audioandvideo', quality: 'lowest' });
+      const chunks = [];
+      for await (const chunk of videoStream) chunks.push(chunk);
+      const buffer = Buffer.concat(chunks);
+
+      await botInstance.socket.sendMessage(message.from, {
+        video: buffer,
+        caption: `*_🎬 ${title}_*`,
+        mimetype: 'video/mp4'
+      });
+      return { handled: true };
+    } catch (e) {
+      return { success: false, message: `*_❌ Failed to play:_* *_${e.message}_*` };
+    }
+  }
+};

@@ -1,22 +1,14 @@
 module.exports = {
   name: 'ping',
-  description: 'Check bot status',
-  category: 'utility',
+  description: 'Check bot response speed',
+  category: 'general',
   execute: async (message, botInstance) => {
-    try {
-      const response = `🏓 **PONG!** Bot is running fine!\n`
-        + `📊 Status: ACTIVE\n`
-        + `⏱️  Response time: ${Date.now()}ms`;
-      
-      return {
-        success: true,
-        message: response
-      };
-    } catch (error) {
-      return {
-        success: false,
-        error: error.message
-      };
-    }
+    const start = Date.now();
+    const response = `*_🏓 PONG!_\*
+
+*_📊 Status:_* *_ACTIVE_*
+*_⏱ Response:_* *_${Date.now() - start}ms_*
+*_🤖 Bot:_* *_VOID X_*`;
+    return { success: true, message: response };
   }
 };

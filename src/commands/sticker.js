@@ -1,9 +1,8 @@
 module.exports = {
   name: 'sticker',
-  description: 'Create a sticker from text (placeholder)',
-  category: 'fun',
-  execute: async (message, botInstance) => {
-    const text = (message.args && message.args.join(' ')) || 'Sticker';
-    return { success: true, message: `🟦 Sticker created from text: ${text}` };
+  description: 'Make sticker from image',
+  category: 'download',
+  execute: async (message) => {
+    return { success: true, message: `*_🖼️ Send an image with caption .sticker to make a sticker_*` };
   }
 };

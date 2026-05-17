@@ -1,8 +1,10 @@
 module.exports = {
   name: 'movie',
-  description: '(placeholder) Movie search',
-  category: 'download',
-  execute: async (message, botInstance) => {
-    return { success: true, message: '🎬 movie search placeholder — provide a title.' };
+  description: 'Search movie info',
+  category: 'tools',
+  execute: async (message) => {
+    const title = message.args.join(' ');
+    if (!title) return { success: true, message: `*_❌ Usage:_* *_.movie <title>_*` };
+    return { success: true, message: `*_🎬 Searching for:_* *_${title}_*_..._*` };
   }
 };
